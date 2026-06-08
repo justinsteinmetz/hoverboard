@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dude, Where's My Hoverboard?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Vollkorn:ital,wght@0,400;0,600;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f2ede4;
+  --bg2: #ebe5da;
+  --surface: #e0d8cc;
+  --ink: #1a1612;
+  --ink-mid: #5a5048;
+  --ink-dim: #9a9088;
+  --red: #c03818;
+  --red-dim: rgba(192,56,24,0.08);
+  --gold: #b8860a;
+  --gold-dim: rgba(184,134,10,0.1);
+  --blue: #1a3a5c;
+  --blue-dim: rgba(26,58,92,0.08);
+  --border: rgba(26,22,18,0.12);
+  --border-hi: rgba(26,22,18,0.22);
+  --display: 'Bebas Neue', impact, sans-serif;
+  --serif: 'Vollkorn', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* paper texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+  opacity: 0.8; mix-blend-mode: multiply;
+}
+
+.screen { display: none; position: relative; z-index: 1; }
+.screen.active { display: block; }
+
+/* ── INTRO ── */
+#intro {
+  min-height: 100vh;
+  display: none;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+#intro.active { display: flex; }
+
+.intro-masthead {
+  padding: clamp(2rem,5vw,4rem) clamp(1.5rem,5vw,4rem);
+  border-bottom: 2px solid var(--ink);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem;
+}
+
+.intro-masthead-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.intro-masthead-right {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.intro-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 2px solid var(--ink);
+}
+
+.intro-left {
+  padding: clamp(2rem,5vw,4rem) clamp(1.5rem,5vw,4rem);
+  border-right: 2px solid var(--ink);
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+
+.intro-title {
+  font-family: var(--display);
+  font-size: clamp(4rem,10vw,9rem);
+  line-height: 0.88;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  margin-bottom: 1.5rem;
+}
+
+.intro-title .red { color: var(--red); }
+
+.intro-subtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1rem,1.8vw,1.25rem);
+  color: var(--ink-mid);
+  line-height: 1.6;
+  max-width: 44ch;
+  margin-bottom: 2rem;
+}
+
+.intro-subtitle strong { color: var(--ink); font-style: normal; }
+
+.intro-meta {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  display: flex; gap: 1.5rem; flex-wrap: wrap;
+  margin-bottom: 2.5rem;
+}
+.intro-meta span::before { content: '—'; margin-right: 0.4rem; }
+
+.btn-begin {
+  display: inline-flex; align-items: center; gap: 0.75rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--ink);
+  border: none;
+  padding: 14px 24px;
+  cursor: pointer;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+.btn-begin:hover { background: var(--red); }
+.btn-begin::after { content: '→'; font-size: 1rem; }
+
+.intro-right {
+  padding: clamp(2rem,4vw,3rem) clamp(1.5rem,4vw,3rem);
+  display: flex; flex-direction: column; justify-content: center;
+  background: var(--bg2);
+}
+
+.promise-stack {
+  display: flex; flex-direction: column; gap: 0;
+}
+
+.promise-item {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.promise-item:last-child { border-bottom: none; }
+
+.promise-tech {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.promise-arrow {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--border-hi);
+}
+
+.promise-result {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--ink-mid);
+  text-align: right;
+}
+
+.intro-footer {
+  padding: 1.2rem clamp(1.5rem,5vw,4rem);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+.intro-footer-q {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--ink-mid);
+}
+
+/* ── CASE SCREEN ── */
+#case-screen {
+  min-height: 100vh;
+  display: none;
+  flex-direction: column;
+}
+#case-screen.active { display: flex; }
+
+/* newspaper-style header */
+.case-masthead {
+  border-bottom: 3px double var(--ink);
+  padding: 12px clamp(1.5rem,5vw,4rem);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+.case-paper-name {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.case-date-line {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.progress-dots {
+  display: flex; gap: 6px; align-items: center;
+}
+
+.pdot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--border-hi);
+  transition: background 0.3s;
+}
+.pdot.done { background: var(--ink-dim); }
+.pdot.active { background: var(--ink); }
+
+/* case body — newspaper layout */
+.case-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  border-bottom: 2px solid var(--ink);
+}
+
+.case-main {
+  padding: clamp(2rem,4vw,3rem) clamp(1.5rem,4vw,3rem);
+  border-right: 1px solid var(--border);
+}
+
+.case-headline-section {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.case-overline {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.case-headline {
+  font-family: var(--display);
+  font-size: clamp(2rem,4vw,3.5rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  margin-bottom: 0.75rem;
+}
+
+.case-deck {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink-mid);
+  line-height: 1.5;
+}
+
+.case-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.case-col { }
+
+.case-col-label {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  border-top: 2px solid var(--ink);
+  padding-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.case-col-body {
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  color: var(--ink-mid);
+  line-height: 1.7;
+}
+
+.case-pullquote {
+  border-left: 4px solid var(--red);
+  padding-left: 1.2rem;
+  margin: 1.5rem 0;
+}
+
+.case-pullquote-text {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink);
+  line-height: 1.55;
+  margin-bottom: 0.5rem;
+}
+
+.case-pullquote-cite {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* gain/loss table */
+.gain-loss-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  margin-top: 1.5rem;
+}
+
+.gain-loss-table th {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  text-align: left;
+  border-bottom: 2px solid var(--ink);
+}
+
+.gain-loss-table th.gain { color: var(--blue); background: var(--blue-dim); }
+.gain-loss-table th.loss { color: var(--red); background: var(--red-dim); }
+
+.gain-loss-table td {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--ink-mid);
+  padding: 10px 14px;
+  vertical-align: top;
+  line-height: 1.55;
+  border-right: 1px solid var(--border);
+}
+.gain-loss-table td:last-child { border-right: none; }
+
+/* sidebar */
+.case-sidebar {
+  padding: clamp(1.5rem,3vw,2.5rem) clamp(1.2rem,2.5vw,2rem);
+  background: var(--bg2);
+  display: flex; flex-direction: column; gap: 1.5rem;
+}
+
+.sidebar-section { }
+
+.sidebar-label {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  border-top: 2px solid var(--ink);
+  padding-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* stance options */
+.stance-group { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+
+.stance-btn {
+  background: var(--bg);
+  border: none;
+  padding: 12px 14px;
+  text-align: left;
+  font-family: var(--serif);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  display: flex; gap: 10px; align-items: flex-start;
+  line-height: 1.45;
+}
+
+.stance-btn::before {
+  content: '';
+  display: block; flex-shrink: 0;
+  width: 10px; height: 10px;
+  border: 1px solid var(--border-hi);
+  margin-top: 3px;
+  transition: all 0.12s;
+}
+
+.stance-btn:hover { background: var(--surface); color: var(--ink); }
+
+.stance-btn.sel-gain { background: var(--blue-dim); color: var(--ink); border-left: 3px solid var(--blue); }
+.stance-btn.sel-gain::before { background: var(--blue); border-color: var(--blue); }
+.stance-btn.sel-loss { background: var(--red-dim); color: var(--ink); border-left: 3px solid var(--red); }
+.stance-btn.sel-loss::before { background: var(--red); border-color: var(--red); }
+.stance-btn.sel-both { background: var(--gold-dim); color: var(--ink); border-left: 3px solid var(--gold); }
+.stance-btn.sel-both::before { background: var(--gold); border-color: var(--gold); }
+
+/* reflection */
+.reflection-area {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-hi);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--ink);
+  line-height: 1.6;
+  padding: 8px 0;
+  resize: none;
+  min-height: 64px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.reflection-area:focus { border-bottom-color: var(--red); }
+.reflection-area::placeholder { color: var(--ink-dim); }
+
+.btn-advance {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--ink);
+  border: none;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background 0.15s;
+  width: 100%;
+  margin-top: auto;
+}
+.btn-advance:hover { background: var(--red); }
+.btn-advance:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-advance:disabled:hover { background: var(--ink); }
+
+/* ── PATTERN SCREEN ── */
+#pattern-screen {
+  min-height: 100vh;
+  display: none;
+  flex-direction: column;
+}
+#pattern-screen.active { display: flex; }
+
+.pattern-masthead {
+  border-bottom: 3px double var(--ink);
+  padding: 12px clamp(1.5rem,5vw,4rem);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.pattern-paper-name {
+  font-family: var(--display);
+  font-size: 1.4rem; color: var(--ink); letter-spacing: 0.04em;
+}
+
+.pattern-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 2px solid var(--ink);
+}
+
+.pattern-left {
+  padding: clamp(2rem,4vw,3.5rem) clamp(1.5rem,5vw,4rem);
+  border-right: 2px solid var(--ink);
+  display: flex; flex-direction: column;
+}
+
+.pattern-overline {
+  font-family: var(--mono); font-size: 0.6rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 0.75rem; font-weight: 500;
+}
+
+.pattern-headline {
+  font-family: var(--display);
+  font-size: clamp(2.5rem,5vw,4.5rem);
+  line-height: 0.92; letter-spacing: 0.02em;
+  color: var(--ink); margin-bottom: 1.5rem;
+}
+
+.pattern-body-text {
+  font-family: var(--serif); font-size: 0.95rem;
+  color: var(--ink-mid); line-height: 1.75;
+  margin-bottom: 1.5rem; max-width: 54ch;
+}
+
+.pattern-body-text strong { color: var(--ink); font-style: normal; }
+
+/* the pattern table */
+.pattern-table {
+  width: 100%; border-collapse: collapse;
+  border: 1px solid var(--border); margin-bottom: 1.5rem;
+}
+
+.pattern-table th {
+  font-family: var(--mono); font-size: 0.58rem;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  padding: 8px 12px; background: var(--ink); color: var(--bg);
+  text-align: left;
+}
+
+.pattern-table td {
+  font-family: var(--serif); font-size: 0.82rem;
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  color: var(--ink-mid); vertical-align: top; line-height: 1.5;
+}
+
+.pattern-table td:first-child {
+  font-family: var(--mono); font-size: 0.68rem;
+  letter-spacing: 0.06em; color: var(--ink-dim);
+  text-transform: uppercase; white-space: nowrap;
+}
+
+.pattern-table td.gain-cell { color: var(--blue); font-style: italic; }
+.pattern-table td.loss-cell { color: var(--red); font-style: italic; }
+
+.pattern-right {
+  padding: clamp(2rem,4vw,3.5rem) clamp(1.5rem,4vw,3rem);
+  background: var(--bg2);
+  display: flex; flex-direction: column;
+}
+
+.your-record-label {
+  font-family: var(--mono); font-size: 0.6rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-dim); border-top: 2px solid var(--ink);
+  padding-top: 0.5rem; margin-bottom: 1rem;
+}
+
+.record-items { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; }
+
+.record-item { background: var(--bg); padding: 12px 14px; }
+.record-item-tech { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 4px; }
+.record-item-stance { font-family: var(--serif); font-style: italic; font-size: 0.82rem; color: var(--ink-mid); }
+.record-item-note { font-family: var(--serif); font-size: 0.78rem; color: var(--ink-dim); margin-top: 3px; font-style: italic; }
+
+/* closing question */
+.closing-q-label {
+  font-family: var(--mono); font-size: 0.6rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-dim); border-top: 2px solid var(--ink);
+  padding-top: 0.5rem; margin-bottom: 0.75rem;
+}
+
+.closing-question {
+  font-family: var(--display);
+  font-size: clamp(1.4rem,3vw,2.2rem);
+  line-height: 1.05; letter-spacing: 0.02em;
+  color: var(--ink); margin-bottom: 1rem;
+}
+
+.closing-sub {
+  font-family: var(--serif); font-style: italic;
+  font-size: 0.88rem; color: var(--ink-mid);
+  line-height: 1.6; margin-bottom: 1.2rem;
+}
+
+.closing-textarea {
+  width: 100%; background: transparent;
+  border: none; border-bottom: 1px solid var(--border-hi);
+  font-family: var(--serif); font-style: italic;
+  font-size: 0.9rem; color: var(--ink);
+  line-height: 1.6; padding: 8px 0;
+  resize: none; min-height: 80px; outline: none;
+  transition: border-color 0.15s; margin-bottom: 1.5rem;
+}
+.closing-textarea:focus { border-bottom-color: var(--red); }
+.closing-textarea::placeholder { color: var(--ink-dim); }
+
+/* discussion */
+.discussion-box {
+  background: var(--ink); padding: 20px 24px; margin-top: auto;
+}
+
+.discussion-label {
+  font-family: var(--mono); font-size: 0.58rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-dim); margin-bottom: 0.75rem;
+}
+
+.discussion-q {
+  font-family: var(--serif); font-style: italic;
+  font-size: 0.85rem; color: #b0a888;
+  line-height: 1.65; margin-bottom: 0.6rem;
+}
+
+.btn-restart {
+  font-family: var(--mono); font-size: 0.62rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-dim); background: none;
+  border: none; cursor: pointer;
+  padding: 1rem 0 0; transition: color 0.15s; display: block;
+}
+.btn-restart:hover { color: var(--ink); }
+
+@media (max-width: 800px) {
+  .intro-body { grid-template-columns: 1fr; }
+  .intro-right { border-top: 2px solid var(--ink); }
+  .case-body { grid-template-columns: 1fr; }
+  .case-sidebar { border-top: 1px solid var(--border); }
+  .case-columns { grid-template-columns: 1fr; }
+  .pattern-body { grid-template-columns: 1fr; }
+  .pattern-right { border-top: 2px solid var(--ink); }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ INTRO ══════════════════════════════════════════════════ -->
+<div class="screen active" id="intro">
+  <div class="intro-masthead">
+    <div class="intro-masthead-label">Science & Technology · Themenfeld 8 · DSP Prague · Grades 11–12</div>
+    <div class="intro-masthead-right">Six technologies · One pattern</div>
+  </div>
+
+  <div class="intro-body">
+    <div class="intro-left">
+      <h1 class="intro-title">DUDE,<br>WHERE'S<br>MY <span class="red">HOVER</span><br>BOARD?</h1>
+      <p class="intro-subtitle">
+        We spend a lot of time imagining the future. Flying cars. Hoverboards. Robot servants. Cities on Mars.<br><br>
+        But the technologies that change civilisation are rarely the ones that look revolutionary when they arrive.<br><br>
+        The printing press looked like a faster way to make books. Radio looked like a way to hear distant voices. Smartphones looked like phones with extra features.<br><br>
+        <strong>None of them stayed that way. The future always arrives. It just never looks like the posters.</strong>
+      </p>
+      <div class="intro-meta">
+        <span>Six technologies</span>
+        <span>Six promises</span>
+        <span>One pattern</span>
+      </div>
+      <button class="btn-begin" onclick="startInstrument()">Begin</button>
+    </div>
+
+    <div class="intro-right">
+      <div class="promise-stack">
+        <div class="promise-item">
+          <div class="promise-tech">Printing Press</div>
+          <div class="promise-arrow">→</div>
+          <div class="promise-result">Looked like: faster books. Changed: who controls interpretation.</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-tech">Photography</div>
+          <div class="promise-arrow">→</div>
+          <div class="promise-result">Looked like: objective evidence. Changed: trust in images.</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-tech">Radio</div>
+          <div class="promise-arrow">→</div>
+          <div class="promise-result">Looked like: distant voices. Changed: who controls the nation's ear.</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-tech">Television</div>
+          <div class="promise-arrow">→</div>
+          <div class="promise-result">Looked like: entertainment. Changed: how politics works.</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-tech">Social Media</div>
+          <div class="promise-arrow">→</div>
+          <div class="promise-result">Looked like: connection. Changed: what counts as true.</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-tech">AI</div>
+          <div class="promise-arrow">→</div>
+          <div class="promise-result">Looks like: generation. Changing: confidence in origin.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="intro-footer">
+    <div class="intro-footer-q"><em>People were looking for flying cars. The real transformation arrived disguised as a phone. The smartphone was the right answer to the wrong question — and so was every technology in this instrument. The disruption is never where the attention is.</em></div>
+  </div>
+</div>
+
+<!-- ══ CASE SCREEN ════════════════════════════════════════════ -->
+<div class="screen" id="case-screen">
+  <div class="case-masthead">
+    <div class="case-paper-name">THE DISRUPTION RECORD</div>
+    <div class="case-date-line" id="caseDateLine">—</div>
+    <div class="progress-dots" id="progressDots"></div>
+  </div>
+
+  <div class="case-body">
+    <div class="case-main" id="caseMain">—</div>
+    <div class="case-sidebar" id="caseSidebar">—</div>
+  </div>
+</div>
+
+<!-- ══ PATTERN SCREEN ═════════════════════════════════════════ -->
+<div class="screen" id="pattern-screen">
+  <div class="pattern-masthead">
+    <div class="pattern-paper-name">THE DISRUPTION RECORD</div>
+    <div class="case-date-line">The Pattern · Revealed</div>
+  </div>
+
+  <div class="pattern-body">
+    <div class="pattern-left">
+      <div class="pattern-overline">The Pattern</div>
+      <h2 class="pattern-headline">SAME STORY.<br>DIFFERENT<br>CENTURY.</h2>
+      <p class="pattern-body-text">You have now studied six technologies across five centuries. Each one was different. Each one followed the same structure.</p>
+      <p class="pattern-body-text">Every technology <strong>increased human capability</strong>. Every technology <strong>disrupted an existing authority</strong> — the Church, the state, the press, the broadcaster, the gatekeeper. Every technology created <strong>new freedoms</strong> and <strong>new dangers</strong>, simultaneously, from the same change.</p>
+      <p class="pattern-body-text">None were utopian. None were dystopian. <strong>Every one was both</strong> — depending on what you valued and where you stood when it arrived.</p>
+      <p class="pattern-body-text">The question was never whether the technology was good or bad. The question was always: <strong>what was gained, what was lost, and who gets to decide whether the trade was worth it?</strong></p>
+
+      <p class="pattern-body-text" style="color:var(--ink);font-style:normal;">And there is one more pattern. Look at where the attention was in each case — and where the disruption actually landed.</p>
+
+      <table class="pattern-table" style="margin-bottom:1.5rem">
+        <thead>
+          <tr>
+            <th>Technology</th>
+            <th style="background:#2a1a0a;color:#d4b060">Where attention went</th>
+            <th style="background:#1a0a0a;color:#d06050">Where disruption landed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Printing Press</td><td style="color:#8a6a20;font-style:italic">Books</td><td style="color:#903020;font-style:italic">Authority over interpretation</td></tr>
+          <tr><td>Photography</td><td style="color:#8a6a20;font-style:italic">Images</td><td style="color:#903020;font-style:italic">Trust in evidence</td></tr>
+          <tr><td>Radio</td><td style="color:#8a6a20;font-style:italic">Communication</td><td style="color:#903020;font-style:italic">Centralisation of the nation's ear</td></tr>
+          <tr><td>Television</td><td style="color:#8a6a20;font-style:italic">Entertainment</td><td style="color:#903020;font-style:italic">The structure of public discourse</td></tr>
+          <tr><td>Social Media</td><td style="color:#8a6a20;font-style:italic">Connection</td><td style="color:#903020;font-style:italic">Verification and shared reality</td></tr>
+          <tr><td>AI</td><td style="color:#8a6a20;font-style:italic">Generation</td><td style="color:#903020;font-style:italic">Confidence in origin</td></tr>
+        </tbody>
+      </table>
+
+      <p class="pattern-body-text" style="border-left:3px solid var(--red);padding-left:1rem;font-style:normal;color:var(--ink)"><strong>The disruption is never where the attention is.</strong> The hoverboard was the wrong question. The smartphone was the right answer — people were watching for flying cars while a device arrived that restructured politics, commerce, attention, and knowledge. The pattern is portable: GPS looked like navigation, the disruption landed in spatial memory. Streaming looked like convenience, the disruption landed in ownership. <em>Where does AI land?</em></p>
+
+      <table class="pattern-table">
+        <thead>
+          <tr>
+            <th>Technology</th>
+            <th class="gain-cell" style="color:var(--bg);background:#1a3a5c">What it enabled</th>
+            <th class="loss-cell" style="color:var(--bg);background:#c03818">What it disrupted</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Printing Press</td>
+            <td class="gain-cell">Individual access to scripture and knowledge</td>
+            <td class="loss-cell">Church's monopoly on interpretation</td>
+          </tr>
+          <tr>
+            <td>Photography</td>
+            <td class="gain-cell">Visual evidence; documentary truth</td>
+            <td class="loss-cell">Trust in images as proof</td>
+          </tr>
+          <tr>
+            <td>Radio</td>
+            <td class="gain-cell">Shared national experience; democratic reach</td>
+            <td class="loss-cell">Local authority; resistance to central control</td>
+          </tr>
+          <tr>
+            <td>Television</td>
+            <td class="gain-cell">Mass visual culture; shared public events</td>
+            <td class="loss-cell">Print press authority; attention to complexity</td>
+          </tr>
+          <tr>
+            <td>Social Media</td>
+            <td class="gain-cell">Everyone publishes; every voice reachable</td>
+            <td class="loss-cell">Editorial gatekeeping; verification</td>
+          </tr>
+          <tr>
+            <td>AI</td>
+            <td class="gain-cell">Infinite generation; compressed cost of creation</td>
+            <td class="loss-cell">Confidence in the origin of what you read</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pattern-right">
+      <div class="your-record-label">Your record</div>
+      <div class="record-items" id="recordItems"></div>
+
+      <div class="closing-q-label">The question that doesn't go away</div>
+      <div class="closing-question">THE DISRUPTION IS NEVER WHERE THE ATTENTION IS.</div>
+      <p class="closing-sub">Six technologies. Five of them are history — the consequences are known, the pattern is visible, the disruption has been measured. The sixth is different. AI is the first case in this instrument where history has not finished yet. You are standing in the middle of it. You cannot judge it the way you judged the printing press. The printing press is done. This one is not. <em>Where is the attention right now — and where is the disruption actually landing?</em></p>
+      <p class="closing-sub" style="margin-top:0.75rem">And: who gets to decide whether the trade was worth it? Who actually decides — and are those the same people?</p>
+      <textarea class="closing-textarea" id="closingAnswer" placeholder="Take your time. This is the one that matters." rows="4"></textarea>
+
+      <!-- ══ EXTENSION: THE CASE STILL BEING WRITTEN ══ -->
+      <div style="margin-bottom:2rem">
+        <div style="font-family:var(--mono);font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-dim);border-top:3px solid var(--ink);padding-top:0.6rem;margin-bottom:1rem">The Case Still Being Written</div>
+
+        <p style="font-family:var(--serif);font-size:0.92rem;color:var(--ink-mid);line-height:1.7;margin-bottom:1rem;font-style:italic">You have now seen the pattern six times. Here is a seventh case. It is not history. It is happening now. Apply the framework yourself.</p>
+
+        <div style="background:var(--surface);border-left:4px solid var(--red);padding:1.2rem 1.4rem;margin-bottom:1rem">
+          <div style="font-family:var(--mono);font-size:0.58rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--red);margin-bottom:0.6rem;font-weight:500">Neurotechnology · 2023–present</div>
+          <p style="font-family:var(--serif);font-size:0.9rem;color:var(--ink);line-height:1.7;margin-bottom:0.75rem">In January 2023, Duke University professor Nita Farahany told the World Economic Forum in Davos that more than 5,000 companies around the world were already using neurotechnology to monitor employee brainwaves — detecting fatigue, concentration, and emotional state. She described wearable devices, like earphones, that could read brain activity in real time. She argued the technology could improve workplace safety, reduce accidents, and increase productivity.</p>
+          <p style="font-family:var(--serif);font-size:0.9rem;color:var(--ink);line-height:1.7;margin-bottom:0.75rem">She also presented a short film imagining the near future: an employee worries that her employer's neurotechnology has detected her "amorous feelings" for a colleague. She receives a performance bonus based on her "brain metrics." Later, the government subpoenas employee brainwave data to identify co-conspirators in a fraud case. She is innocent — but her earbuds recorded that she had been secretly working on a startup with the accused. She removes them, shaking.</p>
+          <p style="font-family:var(--serif);font-size:0.9rem;color:var(--ink-mid);line-height:1.7;font-style:italic">"What I don't want the reaction to be is: let's ban this." — Nita Farahany, Davos, January 2023</p>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;border:1px solid var(--border);margin-bottom:1rem">
+          <thead>
+            <tr>
+              <th style="font-family:var(--mono);font-size:0.58rem;letter-spacing:0.16em;text-transform:uppercase;padding:8px 12px;background:#2a1a0a;color:#d4b060;text-align:left">Where is the attention?</th>
+              <th style="font-family:var(--mono);font-size:0.58rem;letter-spacing:0.16em;text-transform:uppercase;padding:8px 12px;background:#1a0a0a;color:#d06050;text-align:left">Where might the disruption land?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-family:var(--serif);font-style:italic;font-size:0.85rem;padding:8px 12px;border-bottom:1px solid var(--border);color:#8a6a20;vertical-align:top">Productivity. Safety. Fatigue prevention. Accident reduction. Worker wellbeing.</td>
+              <td style="font-family:var(--serif);font-style:italic;font-size:0.85rem;padding:8px 12px;border-bottom:1px solid var(--border);color:#903020;vertical-align:top">Cognitive privacy. Freedom of thought. The boundary between mind and institution. The question of whether thought itself can become data.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p style="font-family:var(--serif);font-size:0.88rem;color:var(--ink-mid);line-height:1.7;font-style:italic">Every previous technology in this instrument made something newly visible, measurable, or shareable — interpretation, images, voices, behaviour, information. Neurotechnology would make thought measurable. Whether this is simply the next step in the pattern — or a fundamentally different kind of threshold — is the question you now have to answer. The question the pattern leaves you with: <strong style="font-style:normal;color:var(--ink)">is there anything about a person that should never become data?</strong></p>
+      </div>
+
+      <div class="discussion-box">
+        <div class="discussion-label" style="color:#6a6048">For the room</div>
+        <div class="discussion-q">Which case surprised you most? Where did the gain and loss feel hardest to separate?</div>
+        <div class="discussion-q">In every case, someone lost authority when the technology arrived. Who was it? Was their authority legitimate?</div>
+        <div class="discussion-q">AI is Case 6. But it's also the technology you're currently inside. Does knowing the pattern change how you see what's happening?</div>
+        <div class="discussion-q" style="color:#d4c8a8;font-style:normal;font-size:0.9rem;border-top:1px solid #3a3428;padding-top:0.6rem;margin-top:0.4rem;">Where is the attention on AI right now — generation, jobs, creative displacement? Where is the disruption actually landing? Are those the same place?</div>
+      </div>
+
+      <button class="btn-restart" onclick="restart()">← Begin again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CASES = [
+  {
+    tech: "The Printing Press",
+    year: "c. 1450",
+    overline: "Case 1 of 6 · The Printing Press",
+    headline: "GOD'S WORD, UNMEDIATED",
+    deck: "For a thousand years, the Church decided what the Bible meant. Gutenberg changed that.",
+    body: `In 1450, Johannes Gutenberg's movable type press produced the first mass-printed Bible. Within fifty years, there were printing presses in every major European city. By 1500, an estimated 20 million books were in circulation — more than had existed in all of Europe's history combined. The Church had controlled the interpretation of scripture for a millennium. Priests read Latin. Ordinary people did not. The gap between the text and the people was the source of the Church's authority. The printing press closed that gap. Martin Luther nailed his 95 Theses to a church door in 1517. Within two weeks, copies had reached every corner of Germany. Within two months, they had reached every corner of Europe. The Church could no longer control what people read, or how they interpreted what they read. The result was not simply religious freedom. It was also a century of religious war — the Thirty Years' War alone killed an estimated eight million people. The same technology that produced the Reformation also produced the pamphlet wars, the propaganda, and the competing claims to divine authority that tore Europe apart.`,
+    quote: `"A simple layman armed with Scripture is to be believed above a Pope or a Council without it."`,
+    cite: "Martin Luther, 1521 — made possible only because his words could be printed and distributed faster than they could be suppressed",
+    gainLabel: "What it enabled",
+    gain: "Individual access to scripture without priestly mediation. Mass literacy. The possibility of religious conscience as a private matter. The beginning of the idea that ordinary people could evaluate authority claims for themselves.",
+    lossLabel: "What it disrupted",
+    loss: "The Church's monopoly on interpretation. The idea that truth required authorised transmission through a human institution. The stability of a social order built on the assumption that most people would never read the source text.",
+    stances: [
+      { label: "Something real was gained — access to the text changed the relationship between individuals and authority", type: "gain" },
+      { label: "Something real was lost — the interpretive community that gave the text shared meaning", type: "loss" },
+      { label: "Both happened simultaneously from the same change, and cannot be separated", type: "both" },
+    ],
+  },
+  {
+    tech: "Photography",
+    year: "c. 1839",
+    overline: "Case 2 of 6 · Photography",
+    headline: "THE CAMERA NEVER LIES",
+    deck: "A technology for capturing truth became a technology for constructing it.",
+    body: `In 1839, Louis Daguerre announced the daguerreotype — the first practical photographic process. For the first time, an image of the world could be captured mechanically, without the intervention of a human hand. Early commentators described it as nature drawing itself. The assumption was immediate and powerful: the photograph is objective. It shows what was there. Within three decades, the assumption was being exploited. During the American Civil War, photographer Alexander Gardner rearranged dead bodies at Gettysburg to create more dramatic compositions. During the First World War, governments used staged and manipulated photographs as propaganda. Stalin removed Trotsky from official photographs after his exile. The Nazis produced elaborate photographic exhibitions designed to associate Jewish people with degeneracy and disease. The camera never lied. But the person operating the camera, choosing the angle, deciding what to include and exclude, deciding what to caption and how — those choices were always present. What photography destroyed was not the lie. It was the viewer's ability to see the lie. Because the photograph looked like evidence, it was treated as evidence. The gap between what photographs showed and what they meant became the space in which the twentieth century's most sophisticated propaganda operated.`,
+    quote: `"The camera is an instrument that teaches people how to see without a camera."`,
+    cite: "Dorothea Lange — whose Migrant Mother photograph became the defining image of the Depression, though the woman in it asked for the photos not to be published",
+    gainLabel: "What it enabled",
+    gain: "Visual evidence. The documentation of events, places, and people with unprecedented fidelity. The democratisation of portraiture. The possibility of a shared visual record of history.",
+    lossLabel: "What it disrupted",
+    loss: "Trust in images as proof. The more powerful photography became as evidence, the more valuable it became as a tool for fabricating evidence. The technology that was supposed to end ambiguity about what happened created new and more sophisticated forms of it.",
+    stances: [
+      { label: "Something real was gained — visual evidence changed what could be known and documented", type: "gain" },
+      { label: "Something real was lost — the ability to trust that an image shows what it claims to show", type: "loss" },
+      { label: "Both — the same technology that created evidence created the tools for faking it", type: "both" },
+    ],
+  },
+  {
+    tech: "Radio",
+    year: "c. 1920",
+    overline: "Case 3 of 6 · Radio",
+    headline: "ONE VOICE REACHES THE NATION",
+    deck: "For the first time in history, a single person could speak simultaneously to millions.",
+    body: `Radio broadcasting began in the early 1920s. By 1930, there were millions of receivers in homes across Europe and America. For the first time in human history, a single voice could reach an entire nation simultaneously — without newspapers, without literacy, without any intermediary. The democratic possibilities seemed limitless. Franklin Roosevelt's Fireside Chats, broadcast directly to American living rooms during the Depression, created an intimacy between a president and citizens that no previous medium had made possible. In Britain, the BBC was founded on the principle that radio could create an informed, educated public. But radio was also a medium of extraordinary centralisability. Whoever controlled the transmitters controlled what the nation heard. Joseph Goebbels understood this before almost anyone. The Nazi government produced cheap radio sets — the Volksempfänger, People's Receiver — and distributed them across Germany. By 1939, 70% of German households owned one. The single voice that reached the nation was, in Germany, the voice the state chose. Radio did not create Nazi propaganda. But it gave propaganda a reach, a simultaneity, and an intimacy that no previous medium could have provided. The same technology that allowed Roosevelt to reassure a frightened public allowed Hitler to inflame one.`,
+    quote: `"We would not have been possible without the loudspeaker and the radio."`,
+    cite: "Joseph Goebbels, on the Nazi seizure of power — an acknowledgment of what the medium had made possible",
+    gainLabel: "What it enabled",
+    gain: "Simultaneity — a nation could share the same information at the same moment. Reach beyond literacy. An intimacy between speaker and listener that print could not provide. The possibility of a genuinely shared public sphere.",
+    lossLabel: "What it disrupted",
+    loss: "The distribution of informational authority. Previously, information was local, plural, and slow. Radio made it central, singular, and instant. The same qualities that made it democratic made it the perfect instrument of centralised control.",
+    stances: [
+      { label: "Something real was gained — shared national experience and democratic reach", type: "gain" },
+      { label: "Something real was lost — the distribution of authority that made propaganda harder", type: "loss" },
+      { label: "Both — the medium's strengths and its dangers were the same qualities", type: "both" },
+    ],
+  },
+  {
+    tech: "Television",
+    year: "c. 1950",
+    overline: "Case 4 of 6 · Television",
+    headline: "THE WORLD IN YOUR LIVING ROOM",
+    deck: "Television brought the world home. It also decided which world to bring.",
+    body: `By 1960, television had become the dominant medium in Western households. It brought the Vietnam War into American living rooms — the first war to be filmed and broadcast in near real time. Walter Cronkite's editorial judgement that the war was unwinnable, broadcast in February 1968, is credited with shifting American public opinion more decisively than any political speech. Television also brought the civil rights movement into living rooms across America: police beating protesters, children being hosed, the March on Washington. What had been deniable became visible. But television was also a medium of extraordinary passivity. It required nothing of the viewer. Reading required active decoding. Radio required imagination. Television provided both the image and the interpretation, simultaneously. The critic Neil Postman argued in 1985 that television was not a neutral medium — that its preference for images over argument, entertainment over complexity, the immediate over the considered, was systematically degrading public discourse. Politics became performance. News became spectacle. The thirty-second soundbite replaced the reasoned argument. The question of whether television created a more informed public or a more manipulable one was not settled by its invention. It was settled by what it was used for.`,
+    quote: `"We are now a culture whose information, ideas, and epistemology are given form by television, not by the printed word."`,
+    cite: "Neil Postman, Amusing Ourselves to Death, 1985",
+    gainLabel: "What it enabled",
+    gain: "Mass visual culture. Shared public events — the moon landing, the Kennedy assassination, the fall of the Berlin Wall — experienced simultaneously by hundreds of millions. The visibility of events that could previously be hidden.",
+    lossLabel: "What it disrupted",
+    loss: "The culture of reading and argument that print had created. The preference for complexity and sustained attention. The authority of institutions that depended on information being slow, local, and text-based.",
+    stances: [
+      { label: "Something real was gained — visibility changed what could be denied", type: "gain" },
+      { label: "Something real was lost — the culture of complexity that slower media had required", type: "loss" },
+      { label: "Both — the same vividness that exposed injustice also made politics into spectacle", type: "both" },
+    ],
+  },
+  {
+    tech: "Social Media",
+    year: "c. 2004",
+    overline: "Case 5 of 6 · Social Media",
+    headline: "EVERYONE BECOMES A PUBLISHER",
+    deck: "The gatekeepers fell. Nobody agreed on what to put in the gate.",
+    body: `Facebook launched in 2004. Twitter in 2006. YouTube had already been running for a year. By 2010, more than a billion people were publishing content on the internet — text, images, video, opinion — without any editorial process, any fact-checking, any gatekeeping of any kind. The Arab Spring of 2010-2012 was organised partly on social media platforms. Activists in Egypt, Tunisia, and Libya coordinated protests, shared footage of state violence, and communicated in real time in ways that authoritarian governments could not easily suppress. The same platforms were used to spread misinformation about vaccines, to radicalise young men through algorithmic recommendation systems, to coordinate the January 6th 2021 attack on the US Capitol, and to spread genocide-inciting content in Myanmar that Facebook later acknowledged had contributed to ethnic cleansing. The editors who had previously decided what was published and what was not were not, it turned out, merely gatekeepers of power. They were also, imperfectly and inconsistently, filters of falsehood. When they disappeared, the question of what was true was no longer answered by institutions with reputational accountability. It was answered by engagement metrics. The most engaging content was frequently the most alarming. The most alarming content was frequently not true.`,
+    quote: `"We thought that we would have freedom of expression and we would fight the regime. We used it against the regime, and then the regime used it against us."`,
+    cite: "Wael Ghonim, Egyptian activist and Google executive, 2016 — a key organiser of the Tahrir Square protests",
+    gainLabel: "What it enabled",
+    gain: "Universal publication. The ability to reach an audience without institutional permission. The coordination of political movements that could not have existed before. The documentation of events by the people inside them.",
+    lossLabel: "What it disrupted",
+    loss: "The editorial filter that — however imperfectly — had distinguished between verified and unverified information. The accountability structures that gave institutions an incentive not to lie. The shared factual basis that democratic argument requires.",
+    stances: [
+      { label: "Something real was gained — democratic participation without gatekeeping", type: "gain" },
+      { label: "Something real was lost — the verification structures that made information trustworthy", type: "loss" },
+      { label: "Both — the same openness that enabled revolution enabled radicalisation", type: "both" },
+    ],
+  },
+  {
+    tech: "Artificial Intelligence",
+    year: "c. 2020–present",
+    overline: "Case 6 of 6 · Artificial Intelligence",
+    headline: "INFINITE GENERATION, UNCERTAIN ORIGIN",
+    deck: "The production of information itself has become automated. The pattern continues.",
+    body: `In 2022, large language models became publicly accessible. By 2023, AI systems could write essays, generate images, compose music, produce code, pass professional examinations, and engage in sustained conversations indistinguishable from human dialogue. The Clarkesworld literary magazine closed submissions after being flooded with AI-generated stories. A Japanese literary prize shortlisted an AI-assisted novel whose judges could not, on rereading, identify the AI passages. Deepfakes — AI-generated videos of real people saying things they never said — became cheap enough to produce on a consumer laptop. The five previous technologies in this instrument each disrupted the authority that controlled information production. The printing press broke the Church's monopoly on interpretation. Photography disrupted trust in images. Radio concentrated the voice. Television accelerated the image. Social media removed the editor. AI does something different: it removes the cost of production entirely. Anyone can now generate text, images, and audio at scale, with no technical skill, in seconds. The question that previous technologies raised — who controls what gets published? — has been superseded. Everything gets published. The new question is: when everything can be generated, how do you know what was made by a person, and whether it matters that it was?`,
+    quote: `"The same question runs through every case in this instrument. AI is not the end of the story. It is the latest chapter."`,
+    cite: "The pattern — visible across five centuries, now arriving in your classroom",
+    gainLabel: "What it enabled",
+    gain: "Infinite generation at zero marginal cost. Access to capabilities — writing, design, analysis — without years of training. The compression of the cost of acting on an idea. New forms of human-AI collaboration that neither could produce alone.",
+    lossLabel: "What it disrupted",
+    loss: "Confidence in the origin of what you read, see, or hear. The relationship between a work and its claimed source. The question of whether authorship matters — and if so, why.",
+    stances: [
+      { label: "Something real was gained — a new category of making that exceeds what any individual could produce", type: "gain" },
+      { label: "Something real was lost — the ability to trust that what you encounter was made by the person it claims", type: "loss" },
+      { label: "Both — and the question of whether the trade was worth it is still being decided", type: "both" },
+    ],
+  },
+];
+
+let current = 0;
+let record = [];
+
+function startInstrument() {
+  document.getElementById('intro').classList.remove('active');
+  document.getElementById('case-screen').classList.add('active');
+  renderCase(0);
+}
+
+function renderDots() {
+  const container = document.getElementById('progressDots');
+  container.innerHTML = '';
+  CASES.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'pdot' + (i < current ? ' done' : i === current ? ' active' : '');
+    container.appendChild(dot);
+  });
+}
+
+function renderCase(idx) {
+  const c = CASES[idx];
+  document.getElementById('caseDateLine').textContent = c.tech + ' · ' + c.year;
+  renderDots();
+
+  // Main column
+  document.getElementById('caseMain').innerHTML = `
+    <div class="case-headline-section">
+      <div class="case-overline">${c.overline}</div>
+      <h2 class="case-headline">${c.headline}</h2>
+      <p class="case-deck">${c.deck}</p>
+    </div>
+    <div class="case-columns">
+      <div class="case-col">
+        <div class="case-col-label">What happened</div>
+        <div class="case-col-body">${c.body.substring(0, Math.floor(c.body.length / 2))}...</div>
+      </div>
+      <div class="case-col">
+        <div class="case-col-label">Continued</div>
+        <div class="case-col-body">...${c.body.substring(Math.floor(c.body.length / 2))}</div>
+      </div>
+    </div>
+    <div class="case-pullquote">
+      <div class="case-pullquote-text">"${c.quote}"</div>
+      <div class="case-pullquote-cite">${c.cite}</div>
+    </div>
+    <table class="gain-loss-table">
+      <thead>
+        <tr>
+          <th class="gain">${c.gainLabel}</th>
+          <th class="loss">${c.lossLabel}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>${c.gain}</td>
+          <td>${c.loss}</td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  // Sidebar
+  let stanceHTML = c.stances.map((s, i) =>
+    `<button class="stance-btn" data-type="${s.type}" onclick="selectStance(this, '${s.type}')">${s.label}</button>`
+  ).join('');
+
+  document.getElementById('caseSidebar').innerHTML = `
+    <div class="sidebar-section">
+      <div class="sidebar-label">What happened here?</div>
+      <div class="stance-group">${stanceHTML}</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">One sentence — your reading of this case</div>
+      <textarea class="reflection-area" id="reflectionArea" placeholder="Anything. Even a question." rows="3"></textarea>
+    </div>
+    <button class="btn-advance" id="advanceBtn" onclick="advance()" disabled>
+      ${idx < CASES.length - 1 ? 'Next case →' : 'See the pattern →'}
+    </button>
+  `;
+
+  window.scrollTo(0, 0);
+}
+
+function selectStance(btn, type) {
+  document.querySelectorAll('.stance-btn').forEach(b => {
+    b.className = 'stance-btn';
+  });
+  btn.classList.add('sel-' + type);
+
+  const c = CASES[current];
+  const stance = c.stances.find(s => s.type === type);
+  record[current] = {
+    tech: c.tech,
+    year: c.year,
+    stance: stance ? stance.label : '',
+    type: type,
+  };
+
+  document.getElementById('advanceBtn').disabled = false;
+}
+
+function advance() {
+  // Save reflection
+  const ref = document.getElementById('reflectionArea');
+  if (record[current] && ref) {
+    record[current].reflection = ref.value;
+  }
+
+  current++;
+  if (current >= CASES.length) {
+    showPattern();
+  } else {
+    renderCase(current);
+  }
+}
+
+function showPattern() {
+  document.getElementById('case-screen').classList.remove('active');
+  document.getElementById('pattern-screen').classList.add('active');
+
+  // Render record
+  const container = document.getElementById('recordItems');
+  container.innerHTML = '';
+  record.forEach(r => {
+    if (!r) return;
+    const div = document.createElement('div');
+    div.className = 'record-item';
+    const colour = r.type === 'gain' ? 'var(--blue)' : r.type === 'loss' ? 'var(--red)' : 'var(--gold)';
+    div.innerHTML = `
+      <div class="record-item-tech" style="color:${colour}">${r.tech} · ${r.year}</div>
+      <div class="record-item-stance">${r.stance}</div>
+      ${r.reflection ? `<div class="record-item-note">${r.reflection}</div>` : ''}
+    `;
+    container.appendChild(div);
+  });
+
+  window.scrollTo(0, 0);
+}
+
+function restart() {
+  current = 0;
+  record = [];
+  document.getElementById('pattern-screen').classList.remove('active');
+  document.getElementById('case-screen').classList.remove('active');
+  document.getElementById('intro').classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
