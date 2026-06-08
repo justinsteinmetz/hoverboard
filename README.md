@@ -3,7 +3,7 @@
 # Dude, Where's My Hoverboard?
 ### The future always arrives. It just never looks like the posters.
 
-**Live:** https://justinsteinmetz.github.io/HoverboardHistory/
+**Live:** https://justinsteinmetz.github.io/hoverboard/
 
 **Strand:** The Technology and Society Trilogy · Historical and analytical instrument · Run second
 
